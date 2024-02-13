@@ -1,10 +1,12 @@
 # Import Modules
 import requests
 import os
+import sys
 
 # Arrays
-difficulty = ["Easy","Medium","Hard","Any Difficulty"]
 start_options = ["Information","Players","Category","Difficulty","Exit"]
+difficulty = ["Easy","Medium","Hard","Any Difficulty"]
+
 
 # API links
 api_url = "https://opentdb.com/api.php?amount=10&category=21&difficulty=easy"
@@ -17,16 +19,6 @@ PRINTING_WIDTH = 50
 DIVIDER_CHARACTER = "="
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
 
-
-# Show category options 
-def category_menu():
-
-    # Print category options
-    print_array([category.get('name') for category in category_options])
-
-    # Ask user to select category
-    category_index = input_checking("Which category would you like to be tested on?:" , category_options)
-    print(category_options[category_index - 1])
 
 
 # Clearing screen function
@@ -67,7 +59,53 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
 
 # Show start menu
 def start_menu():
+
+    # Clearing screen
+    clear()
+
     print_array(start_options)
+    
+    start_index = input_checking("Please select option: " , start_options)
+    match start_index:
+        case 1:
+            print("info")
+
+        case 2:
+            print("players")
+
+        case 3:
+            category_menu()
+
+        case 4:
+            difficulty_menu()
+
+        case 5:
+            sys.exit()
+
+        case _:
+            print(INVALID_MENU_ENTRY)
 
 
-category_menu()
+# Show category options 
+def category_menu():
+
+    clear()
+
+    # Print category options
+    print_array([category.get('name') for category in category_options])
+
+    # Ask user to select category
+    category_index = input_checking("Which category would you like to be tested on?:" , category_options)
+    print(category_options[category_index - 1])
+
+
+def difficulty_menu():
+
+    clear()
+    print("Difficulty")
+    print_array(difficulty)
+    difficulty_index = input_checking("Please select a difficulty:")
+    
+
+
+start_menu()

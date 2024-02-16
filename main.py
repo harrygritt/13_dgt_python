@@ -6,12 +6,12 @@ import time
 
 
 # Arrays
-start_options = ["Information","Players","Category","Difficulty","Exit"]
+
 difficulty_options = ["Easy","Medium","Hard","Any Difficulty"]
 
 
 # API links
-api_url = "https://opentdb.com/api.php?amount=10&category=21&difficulty=easy"
+
 category_url = "https://opentdb.com/api_category.php"
 
 
@@ -62,11 +62,14 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
 # Show start menu
 def start_menu():
 
+    start_options = ["Start Game","Players","Category","Difficulty","dowload","Exit"]
+    
     # Reset difficulty and category options
     difficulty = 0
     category = 0
 
     while True:
+        
         # Clearing screen
         clear()
 
@@ -75,7 +78,7 @@ def start_menu():
         start_index = input_checking("Please select option: " , start_options)
         match start_index:
             case 1:
-                print("info")
+                print("start")
 
             case 2:
                 print("players")
@@ -87,6 +90,13 @@ def start_menu():
                 difficulty = menu("Difficulties" , difficulty_options)
 
             case 5:
+                api_category = category
+                api_difficulty = difficulty
+                api_amount = 10
+
+                api_url = f"https://opentdb.com/api.php?amount={api_amount}&category={api_category}&difficulty={api_difficulty}"
+
+            case 6:
                 sys.exit()
 
             case _:
@@ -113,5 +123,10 @@ def menu(menu_title , array: list):
     # Return choice
     return index
 
+
+
+
+questions = requests.get(api_url).json()
+print(questions)
 
 start_menu()

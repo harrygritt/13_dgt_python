@@ -1,4 +1,5 @@
 # Import Modules
+from urllib import response
 import requests
 import os
 import sys
@@ -90,11 +91,22 @@ def start_menu():
                 difficulty = menu("Difficulties" , difficulty_options)
 
             case 5:
-                api_category = category
+
+                api_category = 0
+
+                if category != 0:
+                    api_category = category + 8
+
                 api_difficulty = difficulty
                 api_amount = 10
 
                 api_url = f"https://opentdb.com/api.php?amount={api_amount}&category={api_category}&difficulty={api_difficulty}"
+                response = requests.get(api_url).json()
+                results = response.get('results')
+                for question in results:
+                    print(f"Type: {question.get('type')} Difficulty: {question.get('difficulty')} Category: {question.get('category')}")
+    
+                input()
 
             case 6:
                 sys.exit()
@@ -125,8 +137,5 @@ def menu(menu_title , array: list):
 
 
 
-
-questions = requests.get(api_url).json()
-print(questions)
 
 start_menu()

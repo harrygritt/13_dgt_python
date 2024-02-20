@@ -1,13 +1,13 @@
 # Import Modules
-from urllib import response
 import requests
 import os
 import sys
 import time
+import random
+import html
 
 
 # Arrays
-
 difficulty_options = ["Easy","Medium","Hard","Any Difficulty"]
 
 
@@ -38,7 +38,7 @@ def print_array(items: list):
 
     # Print the items in array as well as their index
     for index in range(len(items)):
-        print(f"[{index + 1}] {items[index]}")
+        print(html.unescape(f"[{index + 1}] {items[index]}"))
 
     print(PRINTING_WIDTH * DIVIDER_CHARACTER)
 
@@ -97,16 +97,23 @@ def start_menu():
                 if category != 0:
                     api_category = category + 8
 
-                api_difficulty = difficulty
+                api_difficulty = difficulty_options[difficulty - 1].lower()
                 api_amount = 10
-
-                api_url = f"https://opentdb.com/api.php?amount={api_amount}&category={api_category}&difficulty={api_difficulty}"
+                api_url = f"https://opentdb.com/api.php?amount={api_amount}&category={api_category}&difficulty={api_difficulty}&type=multiple"
                 response = requests.get(api_url).json()
                 results = response.get('results')
                 for question in results:
-                    print(f"Type: {question.get('type')} Difficulty: {question.get('difficulty')} Category: {question.get('category')}")
+                    print(html.unescape(question.get('question')))
+                    question_options = question.get('incorrect_answers')
+                    question_options.append(question.get('correct_answer'))
+                    random.shuffle(question_options)
+                    print_array(question_options)
+                    
     
                 input()
+
+
+
 
             case 6:
                 sys.exit()

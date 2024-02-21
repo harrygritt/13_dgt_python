@@ -8,7 +8,7 @@ import html
 
 
 # Arrays
-difficulty_options = ["Easy","Medium","Hard","Any Difficulty"]
+difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
 
 # API links
@@ -66,7 +66,7 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
 # Show start menu
 def start_menu():
 
-    start_options = ["Start Game","Players","Category","Difficulty","dowload","Exit"]
+    start_options = ["Start Game", "Players", "Category", "Difficulty", "Exit"]
     
     # Reset difficulty and category options
     difficulty = 0
@@ -79,50 +79,58 @@ def start_menu():
 
         print_array(start_options)
         
-        start_index = input_checking("Please select option: " , start_options)
+        start_index = input_checking("Please select option: ", start_options)
         match start_index:
             case 1:
-                print("start")
+                
+                # Ask the  user for number of questions and store in api url
+                api_amount = input_checking("How many questions would you like?: ", range(1, 50))
+                
+                # Formatting api url as a string
+                api_url = f"https://opentdb.com/api.php?amount={api_amount}&type=multiple"
+
+                # Check if a category has been chosen
+                if category != 0:
+                    api_category = category + 8
+                    api_url += f"&category={api_category}"
+
+                # Check if a difficulty has been chosen
+                if difficulty != 0:
+                    api_difficulty = difficulty_options[difficulty - 1].lower()
+                    api_url += f"&difficulty={api_difficulty}" 
+
+                # Get availible questions from api
+                response = requests.get(api_url).json()
+                results = response.get('results')
+
+                # Ask questions
+                for question in results:
+
+                    # Get incorrect and correct answers in array
+                    question_options = question.get('incorrect_answers')
+                    question_options.append(question.get('correct_answer'))
+
+                    # Randomise order of answers
+                    random.shuffle(question_options)
+                    answer = menu(html.unescape(question.get('question')), question_options)
+
+                    # Check if answer is correct or not
+                    if question_options[answer - 1] == question.get('correct_answer'):
+                        print("Corect. Top stuff geezer :)")
+                    else:
+                        print("Incorrect. That is sucky bum bum :(")
+                    input()
 
             case 2:
                 print("players")
 
             case 3:
-                category = menu("Categories" , [category.get('name') for category in category_options])
+                category = menu("Categories", [category.get('name') for category in category_options])
 
             case 4:
-                difficulty = menu("Difficulties" , difficulty_options)
+                difficulty = menu("Difficulties", difficulty_options)
 
             case 5:
-
-                api_category = 0
-
-                if category != 0:
-                    api_category = category + 8
-
-                api_difficulty = difficulty_options[difficulty - 1].lower()
-                api_amount = 10
-                api_url = f"https://opentdb.com/api.php?amount={api_amount}&category={api_category}&difficulty={api_difficulty}&type=multiple"
-                response = requests.get(api_url).json()
-                results = response.get('results')
-                for question in results:
-                    question_options = question.get('incorrect_answers')
-                    question_options.append(question.get('correct_answer'))
-                    random.shuffle(question_options)
-                    answer = menu(html.unescape(question.get('question')), question_options)
-                    if question_options[answer - 1] == question.get('correct_answer'):
-                        print("top stuff geezer :)")
-                    else:
-                        print("that is sucky bum bum :(")
-                    input()
-                
-
-                input()
-
-
-
-
-            case 6:
                 sys.exit()
 
             case _:
@@ -140,7 +148,7 @@ def menu(menu_title , array: list):
     print_array(array)
 
     # Ask user to select category
-    index = input_checking("Please select an option:" , array)
+    index = input_checking("Please select an option:", array)
     print(f"You have selected: {array[index - 1]}")
 
     # Let user see their selection

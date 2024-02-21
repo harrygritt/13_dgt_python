@@ -26,8 +26,11 @@ INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
 
 # Clearing screen function
 def clear():
-    # Clearing screen
-    os.system("cls")
+    # Clearing screen dependin on os
+    if os.name == "posix":
+        os.system('clear')
+    else:
+        os.system("cls")
 
 
 # Format single level list function
@@ -103,13 +106,17 @@ def start_menu():
                 response = requests.get(api_url).json()
                 results = response.get('results')
                 for question in results:
-                    print(html.unescape(question.get('question')))
                     question_options = question.get('incorrect_answers')
                     question_options.append(question.get('correct_answer'))
                     random.shuffle(question_options)
-                    print_array(question_options)
-                    
-    
+                    answer = menu(html.unescape(question.get('question')), question_options)
+                    if question_options[answer - 1] == question.get('correct_answer'):
+                        print("top stuff geezer :)")
+                    else:
+                        print("that is sucky bum bum :(")
+                    input()
+                
+
                 input()
 
 

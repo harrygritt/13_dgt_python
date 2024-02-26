@@ -122,7 +122,24 @@ def start_menu():
                     input()
 
             case 2:
-                print("players")
+                print("Players")
+                players = []
+                print_array(players)
+                class Player:
+                    correct = 0
+                    incorrect = 0
+                    
+                    def __init__(self, name):
+                        self.name = name
+                        
+                player_name = input("What is the new users name?: ")
+                user_info = Player(player_name)
+                print(user_info.name)
+                players.append(user_info)
+                print(user_info.name)
+                print_array(players)
+                input()
+    
 
             case 3:
                 category = menu("Categories", [category.get('name') for category in category_options])
@@ -156,6 +173,7 @@ def menu(menu_title , array: list):
 
     # Return choice
     return index
+
 
 
 

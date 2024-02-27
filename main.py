@@ -8,6 +8,7 @@ import html
 
 
 # Arrays
+players = []
 difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
 
@@ -122,24 +123,11 @@ def start_menu():
                     input()
 
             case 2:
-                print("Players")
-                players = []
-                print_array(players)
-                class Player:
-                    correct = 0
-                    incorrect = 0
-                    
-                    def __init__(self, name):
-                        self.name = name
-                        
-                player_name = input("What is the new users name?: ")
-                user_info = Player(player_name)
-                print(user_info.name)
-                players.append(user_info)
-                print(user_info.name)
-                print_array(players)
+
+                
+                
                 input()
-    
+
 
             case 3:
                 category = menu("Categories", [category.get('name') for category in category_options])
@@ -152,6 +140,27 @@ def start_menu():
 
             case _:
                 print(INVALID_MENU_ENTRY)
+
+
+def player_menu():
+    if len(players) >= 10:
+        print("Maximum number of users reached")
+        return
+    
+    print("Players")
+
+    print_array([player.name for player in players])
+    class Player:
+        correct = 0
+        incorrect = 0
+        
+        def __init__(self, name):
+            self.name = name
+            
+    player_name = input("What is the new users name?: ")
+    user_info = Player(player_name)
+    players.append(user_info)
+
 
 
 def menu(menu_title , array: list):

@@ -24,6 +24,14 @@ PRINTING_WIDTH = 50
 DIVIDER_CHARACTER = "="
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
 
+# Classes
+class Player:
+        correct = 0
+        incorrect = 0
+        
+        def __init__(self, name):
+            self.name = name
+
 
 # Clearing screen function
 def clear():
@@ -75,59 +83,13 @@ def start_menu():
 
     while True:
         
-        # Clearing screen
-        clear()
-
-        print_array(start_options)
-        
-        start_index = input_checking("Please select option: ", start_options)
+        start_index = menu("Main Menu", start_options)
         match start_index:
             case 1:
-                
-                # Ask the  user for number of questions and store in api url
-                api_amount = input_checking("How many questions would you like?: ", range(1, 50))
-                
-                # Formatting api url as a string
-                api_url = f"https://opentdb.com/api.php?amount={api_amount}&type=multiple"
-
-                # Check if a category has been chosen
-                if category != 0:
-                    api_category = category + 8
-                    api_url += f"&category={api_category}"
-
-                # Check if a difficulty has been chosen
-                if difficulty != 0:
-                    api_difficulty = difficulty_options[difficulty - 1].lower()
-                    api_url += f"&difficulty={api_difficulty}" 
-
-                # Get availible questions from api
-                response = requests.get(api_url).json()
-                results = response.get('results')
-
-                # Ask questions
-                for question in results:
-
-                    # Get incorrect and correct answers in array
-                    question_options = question.get('incorrect_answers')
-                    question_options.append(question.get('correct_answer'))
-
-                    # Randomise order of answers
-                    random.shuffle(question_options)
-                    answer = menu(html.unescape(question.get('question')), question_options)
-
-                    # Check if answer is correct or not
-                    if question_options[answer - 1] == question.get('correct_answer'):
-                        print("Corect. Top stuff geezer :)")
-                    else:
-                        print("Incorrect. That is sucky bum bum :(")
-                    input()
+                question_asking(difficulty, category)
 
             case 2:
-
-                
-                
-                input()
-
+                player_menu()
 
             case 3:
                 category = menu("Categories", [category.get('name') for category in category_options])
@@ -142,24 +104,78 @@ def start_menu():
                 print(INVALID_MENU_ENTRY)
 
 
-def player_menu():
-    if len(players) >= 10:
-        print("Maximum number of users reached")
-        return
-    
-    print("Players")
+def question_asking(difficulty, category):
 
-    print_array([player.name for player in players])
-    class Player:
-        correct = 0
-        incorrect = 0
+    # Ask the  user for number of questions and store in api url
+    api_amount = input_checking("How many questions would you like?: ", range(1, 50))
+
+    # Formatting api url as a string
+    api_url = f"https://opentdb.com/api.php?amount={api_amount}&type=multiple"
+
+    # Check if a category has been chosen
+    if category != 0:
+        api_category = category + 8
+        api_url += f"&category={api_category}"
+
+    # Check if a difficulty has been chosen
+    if difficulty != 0:
+        api_difficulty = difficulty_options[difficulty - 1].lower()
+        api_url += f"&difficulty={api_difficulty}" 
+
+    # Get availible questions from api
+    response = requests.get(api_url).json()
+    results = response.get('results')
+
+    # Ask questions
+    for question in results:
+
+        # Get incorrect and correct answers in array
+        question_options = question.get('incorrect_answers')
+        question_options.append(question.get('correct_answer'))
+
+        # Randomise order of answers
+        random.shuffle(question_options)
+        answer = menu(html.unescape(question.get('question')), question_options)
+
+        # Check if answer is correct or not
+        if question_options[answer - 1] == question.get('correct_answer'):
+            print("Corect. Top stuff geezer :)")
+
+        else:
+            print("Incorrect. That is sucky bum bum :(")
+        input()
+
+
+def player_menu():
+    while True:
+
+        menu_options = [player.name for player in players]
+        menu_options.append("Add New Player")
+        menu_options.append("Back")
+
+        chosen_option = menu("Players", menu_options)
         
-        def __init__(self, name):
-            self.name = name
+        # If user selects "Back" 
+        if chosen_option == len(menu_options):
+            break
             
-    player_name = input("What is the new users name?: ")
-    user_info = Player(player_name)
-    players.append(user_info)
+        # If user has not selected "Add New Player"
+        elif chosen_option != len(menu_options) - 1:
+            user = players[chosen_option - 1]
+            total = user.correct + user.incorrect
+            print(f"Name: {user.name}, Correct: {user.correct}/{total}, Incorrect: {user.incorrect}/{total}")
+            input("Press Enter to continue")
+            continue
+        
+        # Check if there are too many users
+        if len(players) >= 10:
+            print("Maximum number of users reached")
+            time.sleep(1)
+            continue
+
+        player_name = input("What is the new users name?: ")
+        user_info = Player(player_name)
+        players.append(user_info)
 
 
 
@@ -167,24 +183,18 @@ def menu(menu_title , array: list):
 
     clear()
 
-    # Print menu title
-    print(menu_title)
+    # Center the menu title
+    print(DIVIDER_CHARACTER * PRINTING_WIDTH)
+    title_len = int((PRINTING_WIDTH - len(menu_title))/2)
+    print(" " * title_len, menu_title, " " * title_len)
 
     # Print category options
-    print_array(array)
+    print_array(array) 
 
     # Ask user to select category
-    index = input_checking("Please select an option:", array)
-    print(f"You have selected: {array[index - 1]}")
-
-    # Let user see their selection
-    time.sleep(2)
-
-    # Return choice
-    return index
+    return input_checking("Please select an option:", array)
 
 
 
-
-
-start_menu()
+if __name__ == "__main__":
+    start_menu()

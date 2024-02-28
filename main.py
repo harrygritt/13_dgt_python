@@ -13,16 +13,16 @@ difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
 
 # API links
-
 category_url = "https://opentdb.com/api_category.php"
 
 
 # Variables
 category_options = requests.get(category_url).json()
 category_options = category_options.get("trivia_categories")
-PRINTING_WIDTH = 50
+PRINTING_WIDTH = 150
 DIVIDER_CHARACTER = "="
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
+
 
 # Classes
 class Player:
@@ -86,7 +86,8 @@ def start_menu():
         start_index = menu("Main Menu", start_options)
         match start_index:
             case 1:
-                question_asking(difficulty, category)
+                questions = download_questions(difficulty, category)
+                question_asking(questions)
 
             case 2:
                 player_menu()
@@ -104,7 +105,29 @@ def start_menu():
                 print(INVALID_MENU_ENTRY)
 
 
-def question_asking(difficulty, category):
+def question_asking(questions):
+
+    # Ask questions
+    for question in questions:
+
+        # Get incorrect and correct answers in array
+        question_options = question.get('incorrect_answers')
+        question_options.append(question.get('correct_answer'))
+
+        # Randomise order of answers
+        random.shuffle(question_options)
+        answer = menu(html.unescape(question.get('question')), question_options)
+
+        # Check if answer is correct or not
+        if question_options[answer - 1] == question.get('correct_answer'):
+            print("Corect. Top stuff geezer :)")
+
+        else:
+            print("Incorrect. That is sucky bum bum :(")
+        input()
+
+
+def download_questions(difficulty, category):
 
     # Ask the  user for number of questions and store in api url
     api_amount = input_checking("How many questions would you like?: ", range(1, 50))
@@ -125,25 +148,8 @@ def question_asking(difficulty, category):
     # Get availible questions from api
     response = requests.get(api_url).json()
     results = response.get('results')
+    return results
 
-    # Ask questions
-    for question in results:
-
-        # Get incorrect and correct answers in array
-        question_options = question.get('incorrect_answers')
-        question_options.append(question.get('correct_answer'))
-
-        # Randomise order of answers
-        random.shuffle(question_options)
-        answer = menu(html.unescape(question.get('question')), question_options)
-
-        # Check if answer is correct or not
-        if question_options[answer - 1] == question.get('correct_answer'):
-            print("Corect. Top stuff geezer :)")
-
-        else:
-            print("Incorrect. That is sucky bum bum :(")
-        input()
 
 
 def player_menu():

@@ -19,7 +19,7 @@ category_url = "https://opentdb.com/api_category.php"
 # Variables
 category_options = requests.get(category_url).json()
 category_options = category_options.get("trivia_categories")
-PRINTING_WIDTH = 150
+PRINTING_WIDTH = 140
 DIVIDER_CHARACTER = "="
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
 
@@ -86,8 +86,15 @@ def start_menu():
         start_index = menu("Main Menu", start_options)
         match start_index:
             case 1:
+                if len(players) == 0:
+                    print("At least 1 player must be created to start a game")
+                    time.sleep(1)
+                    continue
+
                 questions = download_questions(difficulty, category)
-                question_asking(questions)
+                for player in players:
+                    question_asking(questions, player)
+
 
             case 2:
                 player_menu()
@@ -105,25 +112,26 @@ def start_menu():
                 print(INVALID_MENU_ENTRY)
 
 
-def question_asking(questions):
+def question_asking(questions, player):
 
     # Ask questions
     for question in questions:
 
-        # Get incorrect and correct answers in array
-        question_options = question.get('incorrect_answers')
-        question_options.append(question.get('correct_answer'))
+
 
         # Randomise order of answers
-        random.shuffle(question_options)
+     
         answer = menu(html.unescape(question.get('question')), question_options)
 
         # Check if answer is correct or not
         if question_options[answer - 1] == question.get('correct_answer'):
-            print("Corect. Top stuff geezer :)")
+            print("Correct. Top stuff geezer :)")
+            player.correct += 1
 
         else:
             print("Incorrect. That is sucky bum bum :(")
+            player.incorrect += 1
+
         input()
 
 
@@ -148,6 +156,10 @@ def download_questions(difficulty, category):
     # Get availible questions from api
     response = requests.get(api_url).json()
     results = response.get('results')
+    results.questions = [html.unescape(question) for question in results.get('incorrect_answers')]
+    results.questions.append(html.unescape(results.get("correct_answer")))
+    random.shuffle(results.questions)
+    print(results.questions)
     return results
 
 

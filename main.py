@@ -123,21 +123,22 @@ def question_asking(questions, player):
     # Ask questions
     for question in questions:
 
-
-
         # Randomise order of answers
-     
+        question_options = question.get('answers')
         answer = menu(html.unescape(question.get('question')), question_options)
 
         # Check if answer is correct or not
         if question_options[answer - 1] == question.get('correct_answer'):
             print("Correct. Top stuff geezer :)")
+            # Add 1 to number of correct answers per user
             player.correct += 1
 
         else:
             print("Incorrect. That is sucky bum bum :(")
+            # Add 1 to number of incorrect answers per user
             player.incorrect += 1
 
+        # Pause screen so user can see if they were right or wrong
         input()
 
 
@@ -162,11 +163,13 @@ def download_questions(difficulty, category):
     # Get availible questions from api
     response = requests.get(api_url).json()
     results = response.get('results')
-    results.questions = [html.unescape(question) for question in results.get('incorrect_answers')]
-    results.questions.append(html.unescape(results.get("correct_answer")))
-    random.shuffle(results.questions)
-    print(results.questions)
+    for question in results:
+        question["answers"] = [html.unescape(answers) for answers in question.get('incorrect_answers')]
+        question["answers"].append(html.unescape(question.get("correct_answer")))
+        random.shuffle(question["answers"])
+
     return results
+
 
 
 

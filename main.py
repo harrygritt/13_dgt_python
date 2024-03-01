@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import random
+import math
 import html
 
 
@@ -20,7 +21,8 @@ category_url = "https://opentdb.com/api_category.php"
 category_options = requests.get(category_url).json()
 category_options = category_options.get("trivia_categories")
 PRINTING_WIDTH = 140
-DIVIDER_CHARACTER = "="
+DIVIDER_CHARACTER_HOZ = "═"
+DIVIDER_CHARACTER_VERTICAL = "║"
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
 
 
@@ -45,14 +47,18 @@ def clear():
 # Format single level list function
 def print_array(items: list):
 
-    # Print the divider
-    print(PRINTING_WIDTH * DIVIDER_CHARACTER)
+
+    divider = DIVIDER_CHARACTER_HOZ * PRINTING_WIDTH
+
+    print("╠" + divider + "╣")
 
     # Print the items in array as well as their index
     for index in range(len(items)):
-        print(html.unescape(f"[{index + 1}] {items[index]}"))
+            text = html.unescape(f"[{index + 1}] {items[index]}")
+            spacing = PRINTING_WIDTH - len(text)
+            print(DIVIDER_CHARACTER_VERTICAL + text + " " * spacing + DIVIDER_CHARACTER_VERTICAL)
 
-    print(PRINTING_WIDTH * DIVIDER_CHARACTER)
+    print("╚" + divider + "╝")
 
 
 # Error checking function
@@ -198,16 +204,31 @@ def player_menu():
 
 
 def menu(menu_title , array: list):
-
     clear()
 
     # Center the menu title
-    print(DIVIDER_CHARACTER * PRINTING_WIDTH)
-    title_len = int((PRINTING_WIDTH - len(menu_title))/2)
-    print(" " * title_len, menu_title, " " * title_len)
+    print("╔" + DIVIDER_CHARACTER_HOZ * PRINTING_WIDTH + "╗")
+
+    title_lines = []
+    current_line = 0
+    title_length = len(menu_title)
+    for i in range(title_length):
+        # Check if there is an item
+        if current_line >= len(title_lines):
+            title_lines.append("")
+
+        # Add the current character to the line
+        title_lines[current_line] += menu_title[i]
+
+        if (i - (current_line * PRINTING_WIDTH) > PRINTING_WIDTH - 2):
+            current_line += 1
+
+    for line in title_lines:
+        titlespace = math.floor((PRINTING_WIDTH - len(line)) / 2)
+        print(f"{DIVIDER_CHARACTER_VERTICAL}{' ' * titlespace}{line}{' ' * titlespace} {DIVIDER_CHARACTER_VERTICAL}")
 
     # Print category options
-    print_array(array) 
+    print_array(array)
 
     # Ask user to select category
     return input_checking("Please select an option:", array)

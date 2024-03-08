@@ -239,4 +239,5 @@ def menu(menu_title , array: list):
 
 
 if __name__ == "__main__":
-    start_menu()
+    print(open("python_ting_testermansam.txt").read())
+    #start_menu()

@@ -83,6 +83,10 @@ def start_menu():
 
     start_options = ["Start Game", "Players", "Category", "Difficulty", "Exit"]
     
+    print("If you dont do well, say hallo til vennen min")
+    print(open("ur dead geezer.txt").read())
+    input()
+
     # Reset difficulty and category options
     difficulty = 0
     category = 0
@@ -240,4 +244,4 @@ def menu(menu_title , array: list):
 
 if __name__ == "__main__":
     print(open("python_ting_testermansam.txt").read())
-    #start_menu()
+    start_menu()

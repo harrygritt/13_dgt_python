@@ -8,7 +8,6 @@ import math
 import html
 
 
-# Arrays
 players = []
 difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
@@ -24,6 +23,7 @@ PRINTING_WIDTH = 140
 DIVIDER_CHARACTER_HOZ = "═"
 DIVIDER_CHARACTER_VERTICAL = "║"
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
+FILE = "player_scores.txt"
 
 
 # Classes
@@ -82,10 +82,6 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
 def start_menu():
 
     start_options = ["Start Game", "Players", "Category", "Difficulty", "Exit"]
-    
-    print("If you dont do well, say hallo til vennen min")
-    print(open("ur dead geezer.txt").read())
-    input()
 
     # Reset difficulty and category options
     difficulty = 0
@@ -178,6 +174,7 @@ def download_questions(difficulty, category):
 
 
 def player_menu():
+
     while True:
 
         menu_options = [player.name for player in players]
@@ -195,6 +192,7 @@ def player_menu():
             user = players[chosen_option - 1]
             total = user.correct + user.incorrect
             print(f"Name: {user.name}, Correct: {user.correct}/{total}, Incorrect: {user.incorrect}/{total}")
+            
             input("Press Enter to continue")
             continue
         
@@ -207,6 +205,10 @@ def player_menu():
         player_name = input("What is the new users name?: ")
         user_info = Player(player_name)
         players.append(user_info)
+
+    for player in players:
+        file = open("player_scores.txt" , "w")
+    
 
 
 
@@ -242,6 +244,5 @@ def menu(menu_title , array: list):
 
 
 
-if __name__ == "__main__":
-    print(open("python_ting_testermansam.txt").read())
+if __name__ == "__main__":  
     start_menu()

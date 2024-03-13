@@ -6,8 +6,10 @@ import time
 import random
 import math
 import html
+import json
 
 
+# Arrays
 players = []
 difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
@@ -23,16 +25,20 @@ PRINTING_WIDTH = 140
 DIVIDER_CHARACTER_HOZ = "═"
 DIVIDER_CHARACTER_VERTICAL = "║"
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
-FILE = "player_scores.txt"
+FILE = "player_scores.json"
 
 
-# Classes
+# Class
 class Player:
         correct = 0
         incorrect = 0
-        
+        total = 0
+
         def __init__(self, name):
             self.name = name
+        
+        def calculate_total(self):
+            self.total = self.correct + self.incorrect
 
 
 # Clearing screen function
@@ -100,6 +106,8 @@ def start_menu():
                 questions = download_questions(difficulty, category)
                 for player in players:
                     question_asking(questions, player)
+
+                player_menu()
 
 
             case 2:
@@ -171,8 +179,6 @@ def download_questions(difficulty, category):
     return results
 
 
-
-
 def player_menu():
 
     while True:
@@ -190,8 +196,8 @@ def player_menu():
         # If user has not selected "Add New Player"
         elif chosen_option != len(menu_options) - 1:
             user = players[chosen_option - 1]
-            total = user.correct + user.incorrect
-            print(f"Name: {user.name}, Correct: {user.correct}/{total}, Incorrect: {user.incorrect}/{total}")
+            user.calculate_total()
+            print(f"Name: {user.name}, Correct: {user.correct}/{user.total}, Incorrect: {user.incorrect}/{user.total}")
             
             input("Press Enter to continue")
             continue
@@ -206,10 +212,20 @@ def player_menu():
         user_info = Player(player_name)
         players.append(user_info)
 
-    for player in players:
-        file = open("player_scores.txt" , "w")
+
+    users_big_dict = {
+        "users" : []
+    }
     
 
+    for player in players:
+        player.calculate_total()
+        users_big_dict["users"].append(player.__dict__)
+
+    
+    with open(FILE, "w") as outfile:
+        json.dump(users_big_dict, outfile)
+    
 
 
 def menu(menu_title , array: list):
@@ -243,6 +259,24 @@ def menu(menu_title , array: list):
     return input_checking("Please select an option:", array)
 
 
+# Import the scores from previous games
+def import_scores():
+
+    # Opening JSON file
+    with open(FILE, "r") as openfile:
+    
+        # Reading from json file
+        json_object = json.load(openfile)
+
+        # Get user's information from previous games
+        users = json_object["users"]
+        for user in users:
+            new_player = Player(user.get("name"))
+            new_player.correct = user.get("correct")
+            new_player.incorrect = user.get("incorrect")
+            players.append(new_player)
+            
 
 if __name__ == "__main__":  
+    import_scores()
     start_menu()

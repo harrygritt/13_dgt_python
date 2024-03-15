@@ -1,0 +1,16 @@
+{
+    "users": [
+        {
+            "name": "Johnnn",
+            "correct": 3,
+            "incorrect": 0,
+            "total": 3
+        },
+        {
+            "name": "test2",
+            "correct": 3,
+            "incorrect": 0,
+            "total": 3
+        }
+    ]
+}

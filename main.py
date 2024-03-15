@@ -25,7 +25,7 @@ PRINTING_WIDTH = 140
 DIVIDER_CHARACTER_HOZ = "═"
 DIVIDER_CHARACTER_VERTICAL = "║"
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
-FILE = "player_scores.json"
+FILE = "player_history.json"
 
 
 # Class
@@ -196,10 +196,18 @@ def player_menu():
         # If user has not selected "Add New Player"
         elif chosen_option != len(menu_options) - 1:
             user = players[chosen_option - 1]
-            user.calculate_total()
-            print(f"Name: {user.name}, Correct: {user.correct}/{user.total}, Incorrect: {user.incorrect}/{user.total}")
+            response = menu(user.name, ["Show Score", "Delete This User", "Back"])
+            match response:
+                case 1:
+                    user.calculate_total()
+                    print(f"Name: {user.name}, Correct: {user.correct}/{user.total}, Incorrect: {user.incorrect}/{user.total}")
+                    input("Press Enter to continue")
+                
+                case 2:
+                    del players[chosen_option - 1]
+
             
-            input("Press Enter to continue")
+            
             continue
         
         # Check if there are too many users
@@ -224,7 +232,7 @@ def player_menu():
 
     
     with open(FILE, "w") as outfile:
-        json.dump(users_big_dict, outfile)
+        json.dump(users_big_dict, outfile, indent = 4)
     
 
 
@@ -274,6 +282,17 @@ def import_scores():
             new_player = Player(user.get("name"))
             new_player.correct = user.get("correct")
             new_player.incorrect = user.get("incorrect")
+            # Check if the user has got any wrong
+            if new_player.incorrect == None:
+                new_player.incorrect = 0
+            # Check if the user has got any right
+            if new_player.correct == None or new_player.correct == 0:
+                new_player.correct = 0
+                # Shame the user for being unskilled
+                if " has room for improvement" not in new_player.name:
+                    new_player.name += " has room for improvement"
+            
+            # Put previous players in list of current players
             players.append(new_player)
             
 

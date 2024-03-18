@@ -153,7 +153,7 @@ def question_asking(questions, player):
 def download_questions(difficulty, category):
 
     # Ask the  user for number of questions and store in api url
-    api_amount = input_checking("How many questions would you like?: ", range(1, 50))
+    api_amount = input_checking("How many questions would you like? (max is 50): ", range(1, 50))
 
     # Formatting api url as a string
     api_url = f"https://opentdb.com/api.php?amount={api_amount}&type=multiple"
@@ -198,16 +198,16 @@ def player_menu():
             user = players[chosen_option - 1]
             response = menu(user.name, ["Show Score", "Delete This User", "Back"])
             match response:
+                # Display player's score
                 case 1:
                     user.calculate_total()
                     print(f"Name: {user.name}, Correct: {user.correct}/{user.total}, Incorrect: {user.incorrect}/{user.total}")
                     input("Press Enter to continue")
                 
                 case 2:
+                    # Remove old player from list of players
                     del players[chosen_option - 1]
 
-            
-            
             continue
         
         # Check if there are too many users
@@ -215,7 +215,8 @@ def player_menu():
             print("Maximum number of users reached")
             time.sleep(1)
             continue
-
+        
+        # Ask for new user's name
         player_name = input("What is the new users name?: ")
         user_info = Player(player_name)
         players.append(user_info)

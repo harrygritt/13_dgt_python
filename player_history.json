@@ -1,3 +1,12 @@
 {
-    "users": []
+    "users": [
+        {
+            "name": "Nater",
+            "total": 0
+        },
+        {
+            "name": "nerd",
+            "total": 0
+        }
+    ]
 }

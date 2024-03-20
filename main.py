@@ -30,20 +30,25 @@ FILE = "player_history.json"
 
 # Class
 class Player:
+        
+        # Storing player's score
         correct = 0
         incorrect = 0
         total = 0
 
+        # Initialising the class by setting the name
         def __init__(self, name):
             self.name = name
         
+        # Calcutlate the player's score 
         def calculate_total(self):
             self.total = self.correct + self.incorrect
 
 
 # Clearing screen function
 def clear():
-    # Clearing screen dependin on os
+
+    # Clearing screen depending on os
     if os.name == "posix":
         os.system('clear')
     else:
@@ -77,9 +82,11 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
         except ValueError:
             print(INVALID_MENU_ENTRY)
             continue
+
         # Check if option is in chosen list/menu, if not, display error message and loop
         if input_index not in range(start_index, len(array) + 1):
             print(error_message)
+
         else:
             return input_index
 
@@ -87,6 +94,7 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
 # Show start menu
 def start_menu():
 
+    # Defining options for the start menu
     start_options = ["Start Game", "Players", "Category", "Difficulty", "Exit"]
 
     # Reset difficulty and category options
@@ -98,6 +106,8 @@ def start_menu():
         start_index = menu("Main Menu", start_options)
         match start_index:
             case 1:
+                
+                # Check if there are enough players for the game to start
                 if len(players) == 0:
                     print("At least 1 player must be created to start a game")
                     time.sleep(1)
@@ -107,25 +117,32 @@ def start_menu():
                 for player in players:
                     question_asking(questions, player)
 
+                # Display players
                 player_menu()
 
 
             case 2:
+                # Dislpay players
                 player_menu()
 
             case 3:
+                # Display category menu
                 category = menu("Categories", [category.get('name') for category in category_options])
 
             case 4:
+                # Display difficulty menu
                 difficulty = menu("Difficulties", difficulty_options)
 
             case 5:
+                # Close program
                 sys.exit()
 
             case _:
+                # Display error message
                 print(INVALID_MENU_ENTRY)
 
 
+# Ask user questions
 def question_asking(questions, player):
 
     # Ask questions
@@ -150,6 +167,7 @@ def question_asking(questions, player):
         input()
 
 
+# Downloading questions from the api
 def download_questions(difficulty, category):
 
     # Ask the  user for number of questions and store in api url
@@ -172,17 +190,21 @@ def download_questions(difficulty, category):
     response = requests.get(api_url).json()
     results = response.get('results')
     for question in results:
+        question["correct_answer"] = [html.unescape(question.get("correct_answer"))]
         question["answers"] = [html.unescape(answers) for answers in question.get('incorrect_answers')]
         question["answers"].append(html.unescape(question.get("correct_answer")))
+        # Randomising order of answers displayed
         random.shuffle(question["answers"])
 
     return results
 
 
+# Storing and displaying player information
 def player_menu():
 
     while True:
 
+        # Store player's information in array
         menu_options = [player.name for player in players]
         menu_options.append("Add New Player")
         menu_options.append("Back")
@@ -198,10 +220,13 @@ def player_menu():
             user = players[chosen_option - 1]
             response = menu(user.name, ["Show Score", "Delete This User", "Back"])
             match response:
+                
                 # Display player's score
                 case 1:
                     user.calculate_total()
-                    print(f"Name: {user.name}, Correct: {user.correct}/{user.total}, Incorrect: {user.incorrect}/{user.total}")
+                    print(f"Name: {user.name}," +
+                          f"Correct: {user.correct}/{user.total}," +
+                          f"Incorrect: {user.incorrect}/{user.total}")
                     input("Press Enter to continue")
                 
                 case 2:

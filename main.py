@@ -1,4 +1,6 @@
 # Import Modules
+import threading
+
 import requests
 import os
 import sys
@@ -7,12 +9,28 @@ import random
 import math
 import html
 import json
-
+import winsound
 
 # Arrays
 players = []
 difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
+correct_sounds = [
+    ["Amazing.m4a", 1],
+    ["Brilliant.m4a", 1],
+    ["Monsterful.m4a", 0.1],
+    ["Spot On.m4a", 0.1],
+    ["Top Stuff Geezer.m4a", 0.1],
+    ["Ding Ding Ding.m4a", 0.1],
+]
+
+incorrect_sounds = [
+    ["Better Luck Next Time Buddy.m4a", 0.1],
+    ["Err Err.m4a", 0.1],
+    ["Sucky Bum Bum.m4a", 0.1],
+    ["Uh Uh UH.m4a", 0.1],
+    ["You Suck.m4a", 0.1],
+]
 
 # API links
 category_url = "https://opentdb.com/api_category.php"
@@ -44,6 +62,11 @@ class Player:
         def calculate_total(self):
             self.total = self.correct + self.incorrect
 
+
+def pick_sound(sounds):
+
+    # TODO: Rarity
+    return random.choice(sounds)[0]
 
 # Clearing screen function
 def clear():
@@ -91,8 +114,24 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
             return input_index
 
 
+
+def play_sound(file):
+
+
+    def soundThread(file):
+        winsound.PlaySound(file, winsound.SND_FILENAME)
+
+    # Run in bg
+    sound_thread = threading.Thread(target=soundThread, args=(file,))
+    sound_thread.start()
+
+
+
 # Show start menu
 def start_menu():
+
+
+    play_sound("sounds/Intro.wav")
 
     # Defining options for the start menu
     start_options = ["Start Game", "Players", "Category", "Difficulty", "Exit"]
@@ -154,11 +193,13 @@ def question_asking(questions, player):
 
         # Check if answer is correct or not
         if question_options[answer - 1] == question.get('correct_answer'):
+            play_sound(pick_sound(correct_sounds))
             print("Correct. Top stuff geezer :)")
             # Add 1 to number of correct answers per user
             player.correct += 1
 
         else:
+            play_sound(pick_sound(incorrect_sounds))
             print("Incorrect. That is sucky bum bum :(")
             # Add 1 to number of incorrect answers per user
             player.incorrect += 1

@@ -142,31 +142,6 @@ def start_menu():
                 print(INVALID_MENU_ENTRY)
 
 
-# Ask user questions
-def question_asking(questions, player):
-
-    # Ask questions
-    for question in questions:
-
-        # Randomise order of answers
-        question_options = question.get('answers')
-        answer = menu(html.unescape(question.get('question')), question_options)
-
-        # Check if answer is correct or not
-        if question_options[answer - 1] == question.get('correct_answer'):
-            print("Correct. Top stuff geezer :)")
-            # Add 1 to number of correct answers per user
-            player.correct += 1
-
-        else:
-            print("Incorrect. That is sucky bum bum :(")
-            # Add 1 to number of incorrect answers per user
-            player.incorrect += 1
-
-        # Pause screen so user can see if they were right or wrong
-        input()
-
-
 # Downloading questions from the api
 def download_questions(difficulty, category):
 
@@ -190,13 +165,39 @@ def download_questions(difficulty, category):
     response = requests.get(api_url).json()
     results = response.get('results')
     for question in results:
-        question["correct_answer"] = [html.unescape(question.get("correct_answer"))]
+        question["correct_answer"] = html.unescape(question.get("correct_answer"))
         question["answers"] = [html.unescape(answers) for answers in question.get('incorrect_answers')]
         question["answers"].append(html.unescape(question.get("correct_answer")))
         # Randomising order of answers displayed
         random.shuffle(question["answers"])
 
     return results
+
+
+# Ask user questions
+def question_asking(questions, player):
+
+    # Ask questions
+    for question in questions:
+
+        # Randomise order of answers
+        question_options = question.get('answers')
+        answer = menu(html.unescape(question.get('question')), question_options)
+        print("Correct Answer:" , question.get('correct_answer'))
+
+        # Check if answer is correct or not
+        if question_options[answer - 1] == question.get('correct_answer'):
+            print("Correct. Top stuff geezer :)")
+            # Add 1 to number of correct answers per user
+            player.correct += 1
+
+        else:
+            print("Incorrect. That is sucky bum bum :(")
+            # Add 1 to number of incorrect answers per user
+            player.incorrect += 1
+
+        # Pause screen so user can see if they were right or wrong
+        input()
 
 
 # Storing and displaying player information
@@ -247,27 +248,29 @@ def player_menu():
         players.append(user_info)
 
 
+    # Store users and their info
     users_big_dict = {
         "users" : []
     }
     
-
+    # Store player's scores
     for player in players:
         player.calculate_total()
         users_big_dict["users"].append(player.__dict__)
 
-    
+    # Store player info in external file
     with open(FILE, "w") as outfile:
         json.dump(users_big_dict, outfile, indent = 4)
     
 
-
+# Run each menu similiarly
 def menu(menu_title , array: list):
     clear()
 
     # Center the menu title
     print("╔" + DIVIDER_CHARACTER_HOZ * PRINTING_WIDTH + "╗")
 
+    # Help with formatting menu
     title_lines = []
     current_line = 0
     title_length = len(menu_title)
@@ -282,6 +285,7 @@ def menu(menu_title , array: list):
         if (i - (current_line * PRINTING_WIDTH) > PRINTING_WIDTH - 2):
             current_line += 1
 
+    # Formatting menu
     for line in title_lines:
         titlespace = math.floor((PRINTING_WIDTH - len(line)) / 2)
         print(f"{DIVIDER_CHARACTER_VERTICAL}{' ' * titlespace}{line}{' ' * titlespace} {DIVIDER_CHARACTER_VERTICAL}")
@@ -317,9 +321,15 @@ def import_scores():
                 # Shame the user for being unskilled
                 if " has room for improvement" not in new_player.name:
                     new_player.name += " has room for improvement"
+
+            """   
+            elif new_player.correct != None or new_player.correct != 0:
+                if " has room for improvement" in new_player.name:
+                    new_player.name -= " has room for improvement"
             
             # Put previous players in list of current players
             players.append(new_player)
+            """
             
 
 if __name__ == "__main__":  

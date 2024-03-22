@@ -1,12 +1,10 @@
 {
     "users": [
         {
-            "name": "Nater",
-            "total": 0
-        },
-        {
-            "name": "nerd",
-            "total": 0
+            "name": "John the number has room for improvement",
+            "correct": 1,
+            "incorrect": 0,
+            "total": 1
         }
     ]
 }

@@ -13,22 +13,21 @@ import json
 players = []
 difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
-
 # API links
 category_url = "https://opentdb.com/api_category.php"
 
-
-# Variables
-category_options = requests.get(category_url).json()
-category_options = category_options.get("trivia_categories")
+# Constantss
 PRINTING_WIDTH = 140
 DIVIDER_CHARACTER_HOZ = "═"
 DIVIDER_CHARACTER_VERTICAL = "║"
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
 FILE = "player_history.json"
 
+# Fetch the categoriess from the apis
+category_options = requests.get(category_url).json()
+category_options = category_options.get("trivia_categories")
 
-# Class
+# Class for the players
 class Player:
         
         # Storing player's score
@@ -51,6 +50,7 @@ def clear():
     # Clearing screen depending on os
     if os.name == "posix":
         os.system('clear')
+
     else:
         os.system("cls")
 
@@ -58,17 +58,23 @@ def clear():
 # Format single level list function
 def print_array(items: list):
 
-
+    # Define the horizontal border of the options 
     divider = DIVIDER_CHARACTER_HOZ * PRINTING_WIDTH
 
+    # Display the top horizontal border of the options 
     print("╠" + divider + "╣")
 
     # Print the items in array as well as their index
     for index in range(len(items)):
+            
+            # Escape the html codess 
             text = html.unescape(f"[{index + 1}] {items[index]}")
+
+            # Format and display the sides of the menu
             spacing = PRINTING_WIDTH - len(text)
             print(DIVIDER_CHARACTER_VERTICAL + text + " " * spacing + DIVIDER_CHARACTER_VERTICAL)
 
+    # Display the bottom horizontal border of the options 
     print("╚" + divider + "╝")
 
 
@@ -97,12 +103,14 @@ def start_menu():
     # Defining options for the start menu
     start_options = ["Start Game", "Players", "Category", "Difficulty", "Exit"]
 
-    # Reset difficulty and category options
+    # Current difficulty and category options
     difficulty = 0
     category = 0
 
+    # Loop while input is invalid
     while True:
         
+        # Store what option user selects
         start_index = menu("Main Menu", start_options)
         match start_index:
             case 1:
@@ -113,7 +121,9 @@ def start_menu():
                     time.sleep(1)
                     continue
 
+                # Start downloading of questions based on difficulty and category
                 questions = download_questions(difficulty, category)
+                # Ask the same questions for each player once at time
                 for player in players:
                     question_asking(questions, player)
 
@@ -145,10 +155,10 @@ def start_menu():
 # Downloading questions from the api
 def download_questions(difficulty, category):
 
-    # Ask the  user for number of questions and store in api url
+    # Ask the  user for number of questions and store in api url, limit at 50
     api_amount = input_checking("How many questions would you like? (max is 50): ", range(1, 50))
 
-    # Formatting api url as a string
+    # Add the amount to the url
     api_url = f"https://opentdb.com/api.php?amount={api_amount}&type=multiple"
 
     # Check if a category has been chosen
@@ -188,11 +198,13 @@ def question_asking(questions, player):
         # Check if answer is correct or not
         if question_options[answer - 1] == question.get('correct_answer'):
             print("Correct. Top stuff geezer :)")
+
             # Add 1 to number of correct answers per user
             player.correct += 1
 
         else:
             print("Incorrect. That is sucky bum bum :(")
+
             # Add 1 to number of incorrect answers per user
             player.incorrect += 1
 
@@ -210,13 +222,14 @@ def player_menu():
         menu_options.append("Add New Player")
         menu_options.append("Back")
 
+        # Display the menu and store their choice
         chosen_option = menu("Players", menu_options)
         
-        # If user selects "Back" 
+        # If user selects the last item (Back) 
         if chosen_option == len(menu_options):
             break
             
-        # If user has not selected "Add New Player"
+        # If user has not selected "Add New Player", this means they must have chosen a player
         elif chosen_option != len(menu_options) - 1:
             user = players[chosen_option - 1]
             response = menu(user.name, ["Show Score", "Delete This User", "Back"])
@@ -236,6 +249,8 @@ def player_menu():
 
             continue
         
+        # If falls through to here then no other option then add new player is slected   
+
         # Check if there are too many users
         if len(players) >= 10:
             print("Maximum number of users reached")
@@ -253,29 +268,33 @@ def player_menu():
         "users" : []
     }
     
-    # Store player's scores
+    # Store player's scores in the dict as a object
     for player in players:
         player.calculate_total()
         users_big_dict["users"].append(player.__dict__)
 
-    # Store player info in external file
+    # Overwirte the data in the store file with the updated info
     with open(FILE, "w") as outfile:
         json.dump(users_big_dict, outfile, indent = 4)
     
 
 # Run each menu similiarly
 def menu(menu_title , array: list):
+
+    # Clear the screen
     clear()
 
     # Center the menu title
     print("╔" + DIVIDER_CHARACTER_HOZ * PRINTING_WIDTH + "╗")
 
-    # Help with formatting menu
+    # To store the lines in the event of the title overflowing
     title_lines = []
     current_line = 0
     title_length = len(menu_title)
+
+
+    # Break each line that is over the title length
     for i in range(title_length):
-        # Check if there is an item
         if current_line >= len(title_lines):
             title_lines.append("")
 
@@ -294,7 +313,7 @@ def menu(menu_title , array: list):
     print_array(array)
 
     # Ask user to select category
-    return input_checking("Please select an option:", array)
+    return input_checking("Please select an option: " , array)
 
 
 # Import the scores from previous games
@@ -312,26 +331,30 @@ def import_scores():
             new_player = Player(user.get("name"))
             new_player.correct = user.get("correct")
             new_player.incorrect = user.get("incorrect")
-            # Check if the user has got any wrong
+            # Check if the player has got any wrong
             if new_player.incorrect == None:
                 new_player.incorrect = 0
-            # Check if the user has got any right
+            # Check if the player has got any right
             if new_player.correct == None or new_player.correct == 0:
                 new_player.correct = 0
-                # Shame the user for being unskilled
+                # Shame the player for being unskilled
                 if " has room for improvement" not in new_player.name:
                     new_player.name += " has room for improvement"
 
-            """   
+            # Remove the mark of shame from the player
             elif new_player.correct != None or new_player.correct != 0:
                 if " has room for improvement" in new_player.name:
-                    new_player.name -= " has room for improvement"
+                    new_player.name = new_player.name.replace(" has room for improvement" , "")
             
             # Put previous players in list of current players
             players.append(new_player)
-            """
             
+            
+# Prevents modulation
+if __name__ == "__main__":
 
-if __name__ == "__main__":  
+    # Import the scores from previous games 
     import_scores()
+
+    # Initiate quiz 
     start_menu()

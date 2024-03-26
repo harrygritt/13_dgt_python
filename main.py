@@ -187,12 +187,17 @@ def download_questions(difficulty, category):
 # Ask user questions
 def question_asking(questions, player):
 
+    # Display who should be answering which questions 
+    begin = menu("The following questions are for: " + player.name , ["Begin", "Skip Player"])
+    if begin == 2:
+        return
+
     # Ask questions
     for question in questions:
 
         # Randomise order of answers
         question_options = question.get('answers')
-        answer = menu(html.unescape(question.get('question')), question_options)
+        answer = menu(html.unescape(question.get('question')) , question_options)
         print("Correct Answer:" , question.get('correct_answer'))
 
         # Check if answer is correct or not
@@ -294,14 +299,14 @@ def menu(menu_title , array: list):
 
 
     # Break each line that is over the title length
-    for i in range(title_length):
+    for item in range(title_length):
         if current_line >= len(title_lines):
             title_lines.append("")
 
         # Add the current character to the line
-        title_lines[current_line] += menu_title[i]
+        title_lines[current_line] += menu_title[item]
 
-        if (i - (current_line * PRINTING_WIDTH) > PRINTING_WIDTH - 2):
+        if (item - (current_line * PRINTING_WIDTH) > PRINTING_WIDTH - 2):
             current_line += 1
 
     # Formatting menu

@@ -1,4 +1,6 @@
 # Import Modules
+import threading
+import winsound
 import requests
 import os
 import sys
@@ -8,15 +10,35 @@ import math
 import html
 import json
 
-
 # Arrays
 players = []
 difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
 
+
+correct_sounds = [
+    ["Amazing.wav", 1],
+    ["Brilliant.wav", 1],
+    ["Monsterful.wav", 1],
+    ["Spot On.wav", 1],
+    ["Top Stuff Geezer.wav", 0.3],
+    ["Ding Ding Ding.wav", 1],
+]
+
+incorrect_sounds = [
+    ["Better Luck Next Time Buddy.wav", 1],
+    ["Err Err.wav", 1],
+    ["Sucky Bum Bum.wav", 0.3],
+    ["Uh Uh UH.wav", 1],
+    ["You Suck.wav", 1],
+]
+
 # API links
 category_url = "https://opentdb.com/api_category.php"
 
-# Constantss
+# Variables
+category_options = requests.get(category_url).json()
+category_options = category_options.get("trivia_categories")
+
 PRINTING_WIDTH = 140
 DIVIDER_CHARACTER_HOZ = "═"
 DIVIDER_CHARACTER_VERTICAL = "║"
@@ -29,24 +51,36 @@ category_options = category_options.get("trivia_categories")
 
 # Class for the players
 class Player:
-        
-        # Storing player's score
-        correct = 0
-        incorrect = 0
-        total = 0
+    # Storing player's score
+    correct = 0
+    incorrect = 0
+    total = 0
 
-        # Initialising the class by setting the name
-        def __init__(self, name):
-            self.name = name
-        
-        # Calcutlate the player's score 
-        def calculate_total(self):
-            self.total = self.correct + self.incorrect
+    # Initialising the class by setting the name
+    def __init__(self, name):
+        self.name = name
+
+    # Calculate the player's score
+    def calculate_total(self):
+        self.total = self.correct + self.incorrect
+
+
+def pick_sound(sounds):
+    while True:
+
+        # Get a random number between 0 and 1 for the cutoff
+        cutoff = random.random()
+
+        # Get a random sound
+        sound = random.choice(sounds)
+
+        # Check if the sound is picked
+        if sound[1] > cutoff:
+            return sound[0]
 
 
 # Clearing screen function
 def clear():
-
     # Clearing screen depending on os
     if os.name == "posix":
         os.system('clear')
@@ -57,7 +91,6 @@ def clear():
 
 # Format single level list function
 def print_array(items: list):
-
     # Define the horizontal border of the options 
     divider = DIVIDER_CHARACTER_HOZ * PRINTING_WIDTH
 
@@ -65,8 +98,7 @@ def print_array(items: list):
     print("╠" + divider + "╣")
 
     # Print the items in array as well as their index
-    for index in range(len(items)):
-            
+    for index in range(len(items)):         
             # Escape the html codess 
             text = html.unescape(f"[{index + 1}] {items[index]}")
 
@@ -79,8 +111,7 @@ def print_array(items: list):
 
 
 # Error checking function
-def input_checking(prompt: str, array: list, start_index: int = 1, error_message = INVALID_MENU_ENTRY):
-
+def input_checking(prompt: str, array: list, start_index: int = 1, error_message=INVALID_MENU_ENTRY):
     # Loop while input is invalid
     while True:
         try:
@@ -97,8 +128,13 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
             return input_index
 
 
+def play_sound(file):
+    winsound.PlaySound("sounds/" + file, winsound.SND_FILENAME | winsound.SND_ASYNC)
+
+
 # Show start menu
 def start_menu():
+    play_sound("Intro.wav")
 
     # Defining options for the start menu
     start_options = ["Start Game", "Players", "Category", "Difficulty", "Exit"]
@@ -109,12 +145,11 @@ def start_menu():
 
     # Loop while input is invalid
     while True:
-        
+      
         # Store what option user selects
         start_index = menu("Main Menu", start_options)
         match start_index:
             case 1:
-                
                 # Check if there are enough players for the game to start
                 if len(players) == 0:
                     print("At least 1 player must be created to start a game")
@@ -123,6 +158,17 @@ def start_menu():
 
                 # Start downloading of questions based on difficulty and category
                 questions = download_questions(difficulty, category)
+                
+                # Play the intro
+                play_sound("Quiz Start.wav")
+                print("Starting game..", end="")
+                for x in range(4):
+                    if x != 3:
+                        print(f"\rStarting in {3 - x}", end="")
+                    else:
+                        print(f"\rQUIZ !              ", end="")
+                    time.sleep(0.5)
+
                 # Ask the same questions for each player once at time
                 for player in players:
                     question_asking(questions, player)
@@ -130,9 +176,8 @@ def start_menu():
                 # Display players
                 player_menu()
 
-
             case 2:
-                # Dislpay players
+                # Display players
                 player_menu()
 
             case 3:
@@ -169,9 +214,9 @@ def download_questions(difficulty, category):
     # Check if a difficulty has been chosen
     if difficulty != 0:
         api_difficulty = difficulty_options[difficulty - 1].lower()
-        api_url += f"&difficulty={api_difficulty}" 
+        api_url += f"&difficulty={api_difficulty}"
 
-    # Get availible questions from api
+        # Get availible questions from api
     response = requests.get(api_url).json()
     results = response.get('results')
     for question in results:
@@ -202,12 +247,14 @@ def question_asking(questions, player):
 
         # Check if answer is correct or not
         if question_options[answer - 1] == question.get('correct_answer'):
+            play_sound(pick_sound(correct_sounds))
             print("Correct. Top stuff geezer :)")
 
             # Add 1 to number of correct answers per user
             player.correct += 1
 
         else:
+           play_sound(pick_sound(incorrect_sounds))
             print("Incorrect. That is sucky bum bum :(")
 
             # Add 1 to number of incorrect answers per user
@@ -219,7 +266,6 @@ def question_asking(questions, player):
 
 # Storing and displaying player information
 def player_menu():
-
     while True:
 
         # Store player's information in array
@@ -239,7 +285,7 @@ def player_menu():
             user = players[chosen_option - 1]
             response = menu(user.name, ["Show Score", "Delete This User", "Back"])
             match response:
-                
+
                 # Display player's score
                 case 1:
                     user.calculate_total()
@@ -247,13 +293,13 @@ def player_menu():
                           f"Correct: {user.correct}/{user.total}," +
                           f"Incorrect: {user.incorrect}/{user.total}")
                     input("Press Enter to continue")
-                
+
                 case 2:
                     # Remove old player from list of players
                     del players[chosen_option - 1]
 
             continue
-        
+
         # If falls through to here then no other option then add new player is slected   
 
         # Check if there are too many users
@@ -261,18 +307,19 @@ def player_menu():
             print("Maximum number of users reached")
             time.sleep(1)
             continue
-        
+
         # Ask for new user's name
         player_name = input("What is the new users name?: ")
         user_info = Player(player_name)
         players.append(user_info)
 
 
+
     # Store users and their info
     users_big_dict = {
-        "users" : []
+        "users": []
     }
-    
+
     # Store player's scores in the dict as a object
     for player in players:
         player.calculate_total()
@@ -280,10 +327,9 @@ def player_menu():
 
     # Overwirte the data in the store file with the updated info
     with open(FILE, "w") as outfile:
-        json.dump(users_big_dict, outfile, indent = 4)
-    
+        json.dump(users_big_dict, outfile, indent=4)
 
-# Run each menu similiarly
+
 def menu(menu_title , array: list):
 
     # Clear the screen
@@ -320,13 +366,11 @@ def menu(menu_title , array: list):
     # Ask user to select category
     return input_checking("Please select an option: " , array)
 
-
 # Import the scores from previous games
 def import_scores():
-
     # Opening JSON file
     with open(FILE, "r") as openfile:
-    
+
         # Reading from json file
         json_object = json.load(openfile)
 
@@ -353,7 +397,6 @@ def import_scores():
             
             # Put previous players in list of current players
             players.append(new_player)
-            
             
 # Prevents modulation
 if __name__ == "__main__":

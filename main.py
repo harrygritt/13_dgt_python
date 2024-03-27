@@ -130,6 +130,7 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
 
 
 def play_sound(file):
+    initalise_audio_driver()
     winsound.PlaySound("sounds/" + file, winsound.SND_FILENAME | winsound.SND_ASYNC)
 
 
@@ -156,9 +157,12 @@ def start_menu():
                     print("At least 1 player must be created to start a game")
                     time.sleep(1)
                     continue
+                
+                # Ask user how many questions they want with limit at 50
+                api_amount = input_checking("How many questions would you like? (max is 50): " , range(1, 50))
 
                 # Start downloading of questions based on difficulty and category
-                questions = download_questions(difficulty, category)
+                questions = download_questions(difficulty, category, api_amount)
 
                 # Play the intro
                 play_sound("Quiz Start.wav")
@@ -199,12 +203,10 @@ def start_menu():
 
 
 # Downloading questions from the api
-def download_questions(difficulty, category):
-    # Ask the  user for number of questions and store in api url, limit at 50
-    api_amount = input_checking("How many questions would you like? (max is 50): ", range(1, 50))
+def download_questions(difficulty, category, amount):
 
     # Add the amount to the url
-    api_url = f"https://opentdb.com/api.php?amount={api_amount}&type=multiple"
+    api_url = f"https://opentdb.com/api.php?amount={amount}&type=multiple"
 
     # Check if a category has been chosen
     if category != 0:
@@ -218,6 +220,14 @@ def download_questions(difficulty, category):
 
         # Get availible questions from api
     response = requests.get(api_url).json()
+
+    # If rate limit reached, pause and re-run
+    if  response.get('response_code') == 5:
+        print("Download failed, trying again...")
+        time.sleep(1)
+        return download_questions(difficulty, category, amount)
+        
+
     results = response.get('results')
     for question in results:
         question["correct_answer"] = html.unescape(question.get("correct_answer"))
@@ -227,7 +237,6 @@ def download_questions(difficulty, category):
         random.shuffle(question["answers"])
 
     return results
-
 
 # Ask user questions
 def question_asking(questions, player):
@@ -402,11 +411,13 @@ def import_scores():
             players.append(new_player)
 
 
-def enable_sound():
+def initalise_audio_driver():
+    return
+
     # Get a user handle
     user32 = WinDLL("user32")
 
-    # Press and release the volume up key
+    # Send volume control events
     for iteration in range(50):
         user32.keybd_event(0xAF, 0, 0, 0)
         user32.keybd_event(0xAF, 0, 2, 0)
@@ -414,8 +425,8 @@ def enable_sound():
 # Prevents modulation
 if __name__ == "__main__":
 
-    # Enable Sound
-    enable_sound()
+    # First audio init
+    initalise_audio_driver()
 
     # Import the scores from previous games
     import_scores()

@@ -9,11 +9,11 @@ import random
 import math
 import html
 import json
+from ctypes import WinDLL
 
 # Arrays
 players = []
 difficulty_options = ["Any Difficulty", "Easy", "Medium", "Hard"]
-
 
 correct_sounds = [
     ["Amazing.wav", 1],
@@ -48,6 +48,7 @@ FILE = "player_history.json"
 # Fetch the categoriess from the apis
 category_options = requests.get(category_url).json()
 category_options = category_options.get("trivia_categories")
+
 
 # Class for the players
 class Player:
@@ -98,13 +99,13 @@ def print_array(items: list):
     print("╠" + divider + "╣")
 
     # Print the items in array as well as their index
-    for index in range(len(items)):         
-            # Escape the html codess 
-            text = html.unescape(f"[{index + 1}] {items[index]}")
+    for index in range(len(items)):
+        # Escape the html codess
+        text = html.unescape(f"[{index + 1}] {items[index]}")
 
-            # Format and display the sides of the menu
-            spacing = PRINTING_WIDTH - len(text)
-            print(DIVIDER_CHARACTER_VERTICAL + text + " " * spacing + DIVIDER_CHARACTER_VERTICAL)
+        # Format and display the sides of the menu
+        spacing = PRINTING_WIDTH - len(text)
+        print(DIVIDER_CHARACTER_VERTICAL + text + " " * spacing + DIVIDER_CHARACTER_VERTICAL)
 
     # Display the bottom horizontal border of the options 
     print("╚" + divider + "╝")
@@ -145,7 +146,7 @@ def start_menu():
 
     # Loop while input is invalid
     while True:
-      
+
         # Store what option user selects
         start_index = menu("Main Menu", start_options)
         match start_index:
@@ -158,7 +159,7 @@ def start_menu():
 
                 # Start downloading of questions based on difficulty and category
                 questions = download_questions(difficulty, category)
-                
+
                 # Play the intro
                 play_sound("Quiz Start.wav")
                 print("Starting game..", end="")
@@ -199,7 +200,6 @@ def start_menu():
 
 # Downloading questions from the api
 def download_questions(difficulty, category):
-
     # Ask the  user for number of questions and store in api url, limit at 50
     api_amount = input_checking("How many questions would you like? (max is 50): ", range(1, 50))
 
@@ -231,9 +231,8 @@ def download_questions(difficulty, category):
 
 # Ask user questions
 def question_asking(questions, player):
-
-    # Display who should be answering which questions 
-    begin = menu("The following questions are for: " + player.name , ["Begin", "Skip Player"])
+    # Display who should be answering which questions
+    begin = menu("The following questions are for: " + player.name, ["Begin", "Skip Player"])
     if begin == 2:
         return
 
@@ -242,8 +241,8 @@ def question_asking(questions, player):
 
         # Randomise order of answers
         question_options = question.get('answers')
-        answer = menu(html.unescape(question.get('question')) , question_options)
-        print("Correct Answer:" , question.get('correct_answer'))
+        answer = menu(html.unescape(question.get('question')), question_options)
+        print("Correct Answer:", question.get('correct_answer'))
 
         # Check if answer is correct or not
         if question_options[answer - 1] == question.get('correct_answer'):
@@ -254,7 +253,7 @@ def question_asking(questions, player):
             player.correct += 1
 
         else:
-           play_sound(pick_sound(incorrect_sounds))
+            play_sound(pick_sound(incorrect_sounds))
             print("Incorrect. That is sucky bum bum :(")
 
             # Add 1 to number of incorrect answers per user
@@ -275,11 +274,11 @@ def player_menu():
 
         # Display the menu and store their choice
         chosen_option = menu("Players", menu_options)
-        
+
         # If user selects the last item (Back) 
         if chosen_option == len(menu_options):
             break
-            
+
         # If user has not selected "Add New Player", this means they must have chosen a player
         elif chosen_option != len(menu_options) - 1:
             user = players[chosen_option - 1]
@@ -313,8 +312,6 @@ def player_menu():
         user_info = Player(player_name)
         players.append(user_info)
 
-
-
     # Store users and their info
     users_big_dict = {
         "users": []
@@ -330,8 +327,7 @@ def player_menu():
         json.dump(users_big_dict, outfile, indent=4)
 
 
-def menu(menu_title , array: list):
-
+def menu(menu_title, array: list):
     # Clear the screen
     clear()
 
@@ -342,7 +338,6 @@ def menu(menu_title , array: list):
     title_lines = []
     current_line = 0
     title_length = len(menu_title)
-
 
     # Break each line that is over the title length
     for item in range(title_length):
@@ -358,13 +353,21 @@ def menu(menu_title , array: list):
     # Formatting menu
     for line in title_lines:
         titlespace = math.floor((PRINTING_WIDTH - len(line)) / 2)
-        print(f"{DIVIDER_CHARACTER_VERTICAL}{' ' * titlespace}{line}{' ' * titlespace} {DIVIDER_CHARACTER_VERTICAL}")
+        formatted = f"{DIVIDER_CHARACTER_VERTICAL}{' ' * titlespace}{line}{' ' * titlespace} {DIVIDER_CHARACTER_VERTICAL}"
+        # If the line is over the width, cut it off
+        if len(formatted) > PRINTING_WIDTH + 2:
+            formatted = formatted[:PRINTING_WIDTH + 1] + DIVIDER_CHARACTER_VERTICAL
+
+        # Ensure the vertical border is drawn
+
+        print(formatted)
 
     # Print category options
     print_array(array)
 
     # Ask user to select category
-    return input_checking("Please select an option: " , array)
+    return input_checking("Please select an option: ", array)
+
 
 # Import the scores from previous games
 def import_scores():
@@ -393,15 +396,28 @@ def import_scores():
             # Remove the mark of shame from the player
             elif new_player.correct != None or new_player.correct != 0:
                 if " has room for improvement" in new_player.name:
-                    new_player.name = new_player.name.replace(" has room for improvement" , "")
-            
+                    new_player.name = new_player.name.replace(" has room for improvement", "")
+
             # Put previous players in list of current players
             players.append(new_player)
-            
+
+
+def enable_sound():
+    # Get a user handle
+    user32 = WinDLL("user32")
+
+    # Press and release the volume up key
+    for iteration in range(50):
+        user32.keybd_event(0xAF, 0, 0, 0)
+        user32.keybd_event(0xAF, 0, 2, 0)
+
 # Prevents modulation
 if __name__ == "__main__":
 
-    # Import the scores from previous games 
+    # Enable Sound
+    enable_sound()
+
+    # Import the scores from previous games
     import_scores()
 
     # Initiate quiz 

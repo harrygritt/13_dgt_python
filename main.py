@@ -1,15 +1,15 @@
 # Import Modules
-import threading
-import winsound
-import requests
-import os
-import sys
-import time
-import random
-import math
 import html
 import json
+import math
+import os
+import random
+import sys
+import time
 from ctypes import WinDLL
+
+import requests
+import winsound
 
 # Arrays
 players = []
@@ -45,9 +45,8 @@ DIVIDER_CHARACTER_VERTICAL = "║"
 INVALID_MENU_ENTRY = "Please select a valid option by entering a valid number"
 FILE = "player_history.json"
 
-# Fetch the categoriess from the apis
-category_options = requests.get(category_url).json()
-category_options = category_options.get("trivia_categories")
+# Fetch the categories from the apis
+category_options = requests.get(category_url).json().get("trivia_categories")
 
 
 # Class for the players
@@ -100,7 +99,7 @@ def print_array(items: list):
 
     # Print the items in array as well as their index
     for index in range(len(items)):
-        # Escape the html codess
+        # Escape the html codes
         text = html.unescape(f"[{index + 1}] {items[index]}")
 
         # Format and display the sides of the menu
@@ -130,7 +129,7 @@ def input_checking(prompt: str, array: list, start_index: int = 1, error_message
 
 
 def play_sound(file):
-    initalise_audio_driver()
+    initialise_audio_driver()
     winsound.PlaySound("sounds/" + file, winsound.SND_FILENAME | winsound.SND_ASYNC)
 
 
@@ -157,9 +156,9 @@ def start_menu():
                     print("At least 1 player must be created to start a game")
                     time.sleep(1)
                     continue
-                
+
                 # Ask user how many questions they want with limit at 50
-                api_amount = input_checking("How many questions would you like? (max is 50): " , range(1, 50))
+                api_amount = input_checking("How many questions would you like? (max is 50): ", range(1, 50))
 
                 # Start downloading of questions based on difficulty and category
                 questions = download_questions(difficulty, category, api_amount)
@@ -204,7 +203,6 @@ def start_menu():
 
 # Downloading questions from the api
 def download_questions(difficulty, category, amount):
-
     # Add the amount to the url
     api_url = f"https://opentdb.com/api.php?amount={amount}&type=multiple"
 
@@ -218,15 +216,14 @@ def download_questions(difficulty, category, amount):
         api_difficulty = difficulty_options[difficulty - 1].lower()
         api_url += f"&difficulty={api_difficulty}"
 
-        # Get availible questions from api
+    # Get available questions from api
     response = requests.get(api_url).json()
 
     # If rate limit reached, pause and re-run
-    if  response.get('response_code') == 5:
+    if response.get('response_code') == 5:
         print("Download failed, trying again...")
         time.sleep(1)
         return download_questions(difficulty, category, amount)
-        
 
     results = response.get('results')
     for question in results:
@@ -237,6 +234,7 @@ def download_questions(difficulty, category, amount):
         random.shuffle(question["answers"])
 
     return results
+
 
 # Ask user questions
 def question_asking(questions, player):
@@ -308,7 +306,7 @@ def player_menu():
 
             continue
 
-        # If falls through to here then no other option then add new player is slected   
+        # If falls through to here then no other option then add new player is selected
 
         # Check if there are too many users
         if len(players) >= 10:
@@ -326,12 +324,12 @@ def player_menu():
         "users": []
     }
 
-    # Store player's scores in the dict as a object
+    # Store player's scores in the dict as an object
     for player in players:
         player.calculate_total()
         users_big_dict["users"].append(player.__dict__)
 
-    # Overwirte the data in the store file with the updated info
+    # Overwrite the data in the store file with the updated info
     with open(FILE, "w") as outfile:
         json.dump(users_big_dict, outfile, indent=4)
 
@@ -356,13 +354,14 @@ def menu(menu_title, array: list):
         # Add the current character to the line
         title_lines[current_line] += menu_title[item]
 
-        if (item - (current_line * PRINTING_WIDTH) > PRINTING_WIDTH - 2):
+        if item - (current_line * PRINTING_WIDTH) > PRINTING_WIDTH - 2:
             current_line += 1
 
     # Formatting menu
     for line in title_lines:
-        titlespace = math.floor((PRINTING_WIDTH - len(line)) / 2)
-        formatted = f"{DIVIDER_CHARACTER_VERTICAL}{' ' * titlespace}{line}{' ' * titlespace} {DIVIDER_CHARACTER_VERTICAL}"
+        title_space = math.floor((PRINTING_WIDTH - len(line)) / 2)
+        formatted = (f"{DIVIDER_CHARACTER_VERTICAL}{' ' * title_space}{line}"
+                     f"{' ' * title_space} {DIVIDER_CHARACTER_VERTICAL}")
         # If the line is over the width, cut it off
         if len(formatted) > PRINTING_WIDTH + 2:
             formatted = formatted[:PRINTING_WIDTH + 1] + DIVIDER_CHARACTER_VERTICAL
@@ -393,17 +392,17 @@ def import_scores():
             new_player.correct = user.get("correct")
             new_player.incorrect = user.get("incorrect")
             # Check if the player has got any wrong
-            if new_player.incorrect == None:
+            if new_player.incorrect is None:
                 new_player.incorrect = 0
             # Check if the player has got any right
-            if new_player.correct == None or new_player.correct == 0:
+            if new_player.correct is None or new_player.correct == 0:
                 new_player.correct = 0
                 # Shame the player for being unskilled
                 if " has room for improvement" not in new_player.name:
                     new_player.name += " has room for improvement"
 
             # Remove the mark of shame from the player
-            elif new_player.correct != None or new_player.correct != 0:
+            elif new_player.correct is not None or new_player.correct != 0:
                 if " has room for improvement" in new_player.name:
                     new_player.name = new_player.name.replace(" has room for improvement", "")
 
@@ -411,7 +410,7 @@ def import_scores():
             players.append(new_player)
 
 
-def initalise_audio_driver():
+def initialise_audio_driver():
     return
 
     # Get a user handle
@@ -422,11 +421,11 @@ def initalise_audio_driver():
         user32.keybd_event(0xAF, 0, 0, 0)
         user32.keybd_event(0xAF, 0, 2, 0)
 
+
 # Prevents modulation
 if __name__ == "__main__":
-
     # First audio init
-    initalise_audio_driver()
+    initialise_audio_driver()
 
     # Import the scores from previous games
     import_scores()
